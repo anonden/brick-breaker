@@ -1,12 +1,12 @@
 {
-  "homepage": "http://anonden.github.io/brick-breaker",
+  "homepage": "http://anonden.github.io/brick-breaker/",
   "name": "brick-breaker",
   "version": "0.1.0",
   "private": true,
   "scripts": {
     "serve": "vue-cli-service serve",
     "predeploy": "npm run build",
-    "deploy": "gh-pages -d build",
+    "deploy": "gh-pages -d dist",
     "build": "vue-cli-service build",
     "lint": "vue-cli-service lint"
   },
