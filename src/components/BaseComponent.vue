@@ -48,6 +48,7 @@ function startBase(){
 }
 
 onMounted(() => {
+    console.log("base mounted")
     startBase()
 })
 

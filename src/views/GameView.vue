@@ -6,14 +6,21 @@
 </template>
 
 <script lang="ts">
-import BallComponent from "@/components/BallComponent.vue";
-import BaseComponent from "@/components/BaseComponent.vue";
+import BallComponent from "../components/BallComponent.vue";
+import BaseComponent from "../components/BaseComponent.vue";
 import { defineComponent } from "vue";
 
 export default defineComponent({
-  name: "HomeView",
+  name: "GameView",
   components: { BallComponent, BaseComponent },
 },);
+</script>
+
+<script setup lang="ts">
+import { onMounted } from "vue"
+onMounted(() => {
+  console.log("mounted gameview")
+})
 </script>
 
 <style lang="scss" scoped>
