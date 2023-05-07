@@ -1,6 +1,7 @@
 <template>
   <div class="scene">
     <game-over-component v-if="!htmlGameStore.getGameStatus"/>
+    <brick-scene-component />
     <base-component/>
     <ball-component/>
   </div>
@@ -10,11 +11,12 @@
 import GameOverComponent from "../components/GameOverComponent.vue"
 import BallComponent from "../components/BallComponent.vue";
 import BaseComponent from "../components/BaseComponent.vue";
+import BrickSceneComponent from "@/components/BrickSceneComponent.vue";
 import { defineComponent } from "vue";
 
 export default defineComponent({
   name: "GameView",
-  components: { BallComponent, BaseComponent, GameOverComponent },
+  components: { BallComponent, BaseComponent, GameOverComponent, BrickSceneComponent },
 },);
 </script>
 
@@ -32,6 +34,5 @@ onMounted(() => {
   width: 100%;
   height: 100%;
   cursor: none;
-
 }
 </style>

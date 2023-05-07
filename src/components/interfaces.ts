@@ -4,3 +4,8 @@ export interface XYPair {
 }
 
 export type BaseModeType = 'normal' | 'catch' 
+
+export interface Brick {
+    exists: boolean,
+    type: string
+}
