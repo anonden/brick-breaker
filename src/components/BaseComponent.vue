@@ -17,9 +17,11 @@ export default defineComponent({
 import { clamp } from "@/functions/generalFunctions";
 import { onMounted, onUnmounted, ref } from "vue";
 import { useBaseStore } from '@/store/baseStore';
+import { useBallStore } from '@/store/ballStore';
 
 let base: any
 const baseStore = ref(useBaseStore())
+const ballStore = useBallStore()
 
 function initBase(){
     let float = window.innerHeight / 100
@@ -31,6 +33,10 @@ function initBase(){
     let x = window.innerWidth / 2 - baseStore.value.getBaseSize.x / 2
     let y = window.innerHeight - (height + float)
     baseStore.value.changeBasePosition({x: x, y: y})
+
+    baseStore.value.addBaseMode('normal')
+
+    initHandlers()
 }
 
 function mouseMoveHandler(event: MouseEvent){
@@ -38,13 +44,20 @@ function mouseMoveHandler(event: MouseEvent){
     baseStore.value.changeBasePositionX(newPosition.value)
 }
 
+function clickHandler(){
+    ballStore.changeBallCapture(false)
+}
+
 function startBase(){   
     if(!base){
         base = document.getElementById(('base'))
     }
-    initBase()
+    base && initBase()
+}
 
+function initHandlers(){
     window.addEventListener('mousemove', mouseMoveHandler)
+    window.addEventListener('click', clickHandler)
 }
 
 onMounted(() => {
@@ -54,6 +67,7 @@ onMounted(() => {
 
 onUnmounted(() =>{
     window.removeEventListener('mousemove', mouseMoveHandler)
+    window.removeEventListener('click', clickHandler)
 })
 
 

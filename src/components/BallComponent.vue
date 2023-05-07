@@ -11,14 +11,14 @@ export default defineComponent({
 })
 </script>
 <script lang="ts" setup>
-import { ref, onMounted, onUnmounted } from "vue";
+import { ref, onMounted, onUnmounted, watch } from "vue";
 import { calculateAngleFromCos, clamp, distanceBetweenPoints, valueInRange } from '@/functions/generalFunctions'
 import { useBallStore } from "@/store/ballStore";
 import { useBaseStore } from '@/store/baseStore';
 
 let ball: any
 let intervalNumber = 8
-let keepGoing = true
+let firstWatchTriggered = false
 let ballStore = useBallStore()
 let htmlBallStore = ref(useBallStore())
 let baseStore = useBaseStore()
@@ -35,8 +35,8 @@ function collisionMovement(){
     let baseCenterX = baseStore.getBasePosition.x + baseStore.getBaseSize.x / 2
     let baseCenter = {x: baseCenterX, y: baseStore.getBasePosition.y}
     
-    let ballX = ballStore.getBallPosition.x - ballStore.getVector.x
-    let ballY = ballStore.getBallPosition.y - ballStore.getVector.y
+    let ballX = ballStore.getBallPosition.x - ballStore.getVector.x/10
+    let ballY = ballStore.getBallPosition.y - ballStore.getVector.y/10
     let previousBall = ({x: ballX, y: ballY})
 
     let aWidth = baseStore.getBaseSize.x / 2
@@ -57,14 +57,17 @@ function nonCollisionMovement(changedVector = false){
     let newXValue = clamp(ballStore.getBallPosition.x + ballStore.getVector.x, window.innerWidth - ballStore.getBallSize)
     let newYValue = clamp(ballStore.getBallPosition.y + ballStore.getVector.y, window.innerHeight - ballStore.getBallSize)
 
+    if(newYValue.value == window.innerHeight - ballStore.getBallSize){
+        ballStore.changeBallCapture(true)
+    }else if(baseStore.getBaseModes.has('catch') && changedVector){
+        ballStore.changeBallCapture(true)
+        let pos = initBallPosition()
+        newYValue.value = pos.y - ballStore.getBallSize / 2
+    }
+
     ballStore.changeBallPosition({x: newXValue.value, y: newYValue.value})
-      
     ball.style.left = newXValue.value + 'px'
     ball.style.top = newYValue.value + 'px'
-
-    if(newYValue.value == window.innerHeight - ballStore.getBallSize){
-        keepGoing = false
-    }
 
     if(!changedVector){
         newXValue.clampNeedeed && ballStore.mirrorVectorX()
@@ -78,7 +81,7 @@ function increment(){
     nonCollisionMovement(collided)
 
     setTimeout(() => {   
-        keepGoing && requestAnimationFrame(increment)
+        !ballStore.getBallIsCaptured && requestAnimationFrame(increment)
     }, intervalNumber);
 }
 
@@ -86,6 +89,10 @@ function startBall(){
     if(!ball){
         ball = document.getElementById(('ball'))
         initBallSize()
+
+        let initPos = initBallPosition()
+        ballStore.changeBallPosition(initPos)
+
         initVector()
     }
 
@@ -97,11 +104,21 @@ function initBallSize(){
     ballStore.changeBallSize(ballsize)
 }
 
+function initBallPosition(){
+    let float = window.innerHeight / 100    
+    let height = window.innerWidth / 192
+
+    let x = window.innerWidth / 2 - ballStore.getBallSize / 2
+    let y = window.innerHeight - (height + float + ballStore.getBallSize / 2 + 2)
+
+    return {x: x, y: y} 
+}
+
 function initVector(){
     let startVectorX = window.innerWidth / 200
     let startVectorY = window.innerHeight / 400
 
-    ballStore.changeVector({x: startVectorX, y: startVectorY})
+    ballStore.changeVector({x: startVectorX, y: -startVectorY})
 }
 
 function addHitAnimation(){
@@ -112,12 +129,26 @@ function addHitAnimation(){
     }, 150);
 }
 
+watch(() => ballStore.getBallIsCaptured, (newValue) => {
+    !newValue && requestAnimationFrame(increment)
+})
+
+watch(() => baseStore.getBasePosition.x, (newValue, oldValue) => {
+    if(!firstWatchTriggered){
+        firstWatchTriggered = true
+    }else if(ballStore.getBallIsCaptured){
+        let diff = newValue - oldValue
+        ballStore.changeBallPositionXByDiff(diff)
+        ball.style.left = ballStore.getBallPosition.x + 'px'
+    }
+})
+
 onMounted(() => {
     startBall()
 })
 
 onUnmounted(() =>{
-    keepGoing = false
+    ballStore.changeBallCapture(false)
 })
 
 </script>
