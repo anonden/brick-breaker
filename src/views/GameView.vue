@@ -23,7 +23,9 @@ export default defineComponent({
 <script setup lang="ts">
 import { onMounted, ref } from "vue"
 import { useGameStore } from "@/store/gameStore";
+
 const htmlGameStore = ref(useGameStore())
+
 onMounted(() => {
   console.log("mounted gameview")
 })

@@ -1,5 +1,5 @@
 <template>
-    <div class="brick" />
+    <div :id="'brick_' + props.index" class="brick" />
 </template>
 
 <script lang="ts">
@@ -9,13 +9,56 @@ export default defineComponent({
 })
 </script>
 <script lang="ts" setup>
-import { defineProps, onMounted } from 'vue'
+import { useBallStore } from '@/store/ballStore'
+import { defineProps, onMounted, watch } from 'vue'
+import { clamp } from '@/functions/generalFunctions'
+import { useBrickStore } from '@/store/brickStore'
+
 const props = defineProps({
-    index: Number,
+    index: {type: Number, required: true},
+})
+
+let pos: DOMRect
+const ballStore = useBallStore()
+const brickStore = useBrickStore()
+
+function collisionMovement(detected: string){
+    brickStore.removeElementFromLayout(props.index, detected)
+}
+
+function saveCurrentPosition(){
+    const brick = document.getElementById('brick_' + props.index)
+    if(brick){
+        pos = brick.getBoundingClientRect()
+    }
+}
+
+watch(() => ballStore.getBallPosition, (newValue) => {
+    const xValues = clamp(newValue.x, pos.right + ballStore.getBallSize/2, pos.left - ballStore.getBallSize/2)
+    if(!xValues.clampNeedeed){
+        const YValues = clamp(newValue.y, pos.bottom + ballStore.getBallSize/2, pos.top - ballStore.getBallSize/2)
+        if(!YValues.clampNeedeed){
+
+            let left = newValue.x - pos.left
+            let right = pos.right - newValue.x
+            let top = newValue.y - pos.top
+            let bottom = pos.bottom - newValue.y
+            let min = Math.min(left, right, top, bottom)
+            let detected
+            if(min == bottom || min == top){
+                detected = 'vertical'
+            }else{
+                detected = 'horizontal'
+            }
+
+            collisionMovement(detected)
+        }
+    }
+
 })
 
 onMounted(() => {
-    console.log(props.index)
+    saveCurrentPosition()
 })
 </script>
 

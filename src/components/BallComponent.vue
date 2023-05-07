@@ -26,10 +26,10 @@ let baseStore = useBaseStore()
 let gameStore = useGameStore()
 
 function checkForCollision(){
-    let yLevel = ballStore.getBallPosition.y >= baseStore.getBasePosition.y - ballStore.getBallSize
-    let xLevel = valueInRange(ballStore.getBallPosition.x, baseStore.getBasePosition.x + baseStore.getBaseSize.x, baseStore.getBasePosition.x)
+	let yLevel = ballStore.getBallPosition.y >= baseStore.getBasePosition.y - ballStore.getBallSize
+	let xLevel = valueInRange(ballStore.getBallPosition.x, baseStore.getBasePosition.x + baseStore.getBaseSize.x, baseStore.getBasePosition.x)
 
-    return yLevel && xLevel
+	return yLevel && xLevel
 }
 
 function collisionMovement(){
