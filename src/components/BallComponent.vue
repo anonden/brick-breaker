@@ -15,6 +15,7 @@ import { ref, onMounted, onUnmounted, watch } from "vue";
 import { calculateAngleFromCos, clamp, distanceBetweenPoints, valueInRange } from '@/functions/generalFunctions'
 import { useBallStore } from "@/store/ballStore";
 import { useBaseStore } from '@/store/baseStore';
+import { useGameStore } from '@/store/gameStore';
 
 let ball: any
 let intervalNumber = 8
@@ -22,6 +23,7 @@ let firstWatchTriggered = false
 let ballStore = useBallStore()
 let htmlBallStore = ref(useBallStore())
 let baseStore = useBaseStore()
+let gameStore = useGameStore()
 
 function checkForCollision(){
     let yLevel = ballStore.getBallPosition.y >= baseStore.getBasePosition.y - ballStore.getBallSize
@@ -58,7 +60,7 @@ function nonCollisionMovement(changedVector = false){
     let newYValue = clamp(ballStore.getBallPosition.y + ballStore.getVector.y, window.innerHeight - ballStore.getBallSize)
 
     if(newYValue.value == window.innerHeight - ballStore.getBallSize){
-        ballStore.changeBallCapture(true)
+        gameStore.changeGameStatus(false)
     }else if(baseStore.getBaseModes.has('catch') && changedVector){
         ballStore.changeBallCapture(true)
         let pos = initBallPosition()
@@ -76,27 +78,34 @@ function nonCollisionMovement(changedVector = false){
 }
 
 function increment(){
-    let collided = checkForCollision()
-    collided && collisionMovement()
-    nonCollisionMovement(collided)
-
-    setTimeout(() => {   
-        !ballStore.getBallIsCaptured && requestAnimationFrame(increment)
-    }, intervalNumber);
+    if(gameStore.getGameStatus){
+        let collided = checkForCollision()
+        collided && collisionMovement()
+        nonCollisionMovement(collided)
+    
+        setTimeout(() => {   
+            !ballStore.getBallIsCaptured && requestAnimationFrame(increment)
+        }, intervalNumber);
+    }
 }
 
 function startBall(){   
     if(!ball){
         ball = document.getElementById(('ball'))
-        initBallSize()
-
-        let initPos = initBallPosition()
-        ballStore.changeBallPosition(initPos)
-
-        initVector()
     }
+    initBallSize()
+
+    let initPos = initBallPosition()
+    ballStore.changeBallPosition(initPos)
+
+    initVector()
 
     ball && requestAnimationFrame(increment)
+}
+
+function destroyBall(){
+    ballStore.changeBallSize(0)
+    ballStore.changeBallCapture(true)
 }
 
 function initBallSize(){
@@ -129,6 +138,14 @@ function addHitAnimation(){
     }, 150);
 }
 
+watch(() => gameStore.getGameStatus, (newValue) => {
+    if(!newValue){
+        destroyBall()
+    }else{
+        startBall()
+    }
+})
+
 watch(() => ballStore.getBallIsCaptured, (newValue) => {
     !newValue && requestAnimationFrame(increment)
 })
@@ -148,7 +165,7 @@ onMounted(() => {
 })
 
 onUnmounted(() =>{
-    ballStore.changeBallCapture(false)
+    destroyBall()
 })
 
 </script>

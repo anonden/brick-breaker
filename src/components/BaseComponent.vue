@@ -9,19 +9,21 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue'
+import { useGameStore } from "@/store/gameStore";
 export default defineComponent({
     name: "BaseComponent"
 })
 </script>
 <script lang="ts" setup>
 import { clamp } from "@/functions/generalFunctions";
-import { onMounted, onUnmounted, ref } from "vue";
+import { onMounted, onUnmounted, ref, watch } from "vue";
 import { useBaseStore } from '@/store/baseStore';
 import { useBallStore } from '@/store/ballStore';
 
 let base: any
 const baseStore = ref(useBaseStore())
 const ballStore = useBallStore()
+const gameStore = useGameStore()
 
 function initBase(){
     let float = window.innerHeight / 100
@@ -45,7 +47,7 @@ function mouseMoveHandler(event: MouseEvent){
 }
 
 function clickHandler(){
-    ballStore.changeBallCapture(false)
+    ballStore.getBallIsCaptured && ballStore.changeBallCapture(false)  
 }
 
 function startBase(){   
@@ -60,14 +62,27 @@ function initHandlers(){
     window.addEventListener('click', clickHandler)
 }
 
+function removeHandlers(){
+    window.removeEventListener('mousemove', mouseMoveHandler)
+    window.removeEventListener('click', clickHandler)
+}
+
+watch(() => gameStore.getGameStatus, (newValue) => {
+    if(!newValue){
+        removeHandlers()
+    }else{
+        startBase()
+    }
+})
+
+
 onMounted(() => {
     console.log("base mounted")
     startBase()
 })
 
 onUnmounted(() =>{
-    window.removeEventListener('mousemove', mouseMoveHandler)
-    window.removeEventListener('click', clickHandler)
+    removeHandlers()
 })
 
 
