@@ -19,6 +19,8 @@ const props = defineProps({
 })
 
 let pos: DOMRect
+let customPos: {right: number, left: number, bottom: number, top: number}
+
 const ballStore = useBallStore()
 const brickStore = useBrickStore()
 
@@ -30,13 +32,19 @@ function saveCurrentPosition(){
     const brick = document.getElementById('brick_' + props.index)
     if(brick){
         pos = brick.getBoundingClientRect()
+        customPos = {
+            right : pos.right + ballStore.getBallSize/2,
+            left: pos.left - ballStore.getBallSize/2,
+            bottom: pos.bottom + ballStore.getBallSize/2,
+            top: pos.top - ballStore.getBallSize/2
+        }
     }
 }
 
 watch(() => ballStore.getBallPosition, (newValue) => {
-    const xValues = clamp(newValue.x, pos.right + ballStore.getBallSize/2, pos.left - ballStore.getBallSize/2)
+    const xValues = clamp(newValue.x, customPos.right, customPos.left)
     if(!xValues.clampNeedeed){
-        const YValues = clamp(newValue.y, pos.bottom + ballStore.getBallSize/2, pos.top - ballStore.getBallSize/2)
+        const YValues = clamp(newValue.y, customPos.bottom, customPos.top)
         if(!YValues.clampNeedeed){
 
             let left = newValue.x - pos.left

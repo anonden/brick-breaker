@@ -18,7 +18,7 @@ import { useBaseStore } from '@/store/baseStore';
 import { useGameStore } from '@/store/gameStore';
 
 let ball: any
-let intervalNumber = 8
+let intervalNumber = 15
 let firstWatchTriggered = false
 let ballStore = useBallStore()
 let htmlBallStore = ref(useBallStore())
@@ -79,13 +79,14 @@ function nonCollisionMovement(changedVector = false){
 
 function increment(){
     if(gameStore.getGameStatus){
-        let collided = checkForCollision()
-        collided && collisionMovement()
-        nonCollisionMovement(collided)
-    
         setTimeout(() => {   
-            !ballStore.getBallIsCaptured && requestAnimationFrame(increment)
+            !ballStore.getBallIsCaptured && increment()
         }, intervalNumber);
+
+        let collided = checkForCollision()
+        collided && requestAnimationFrame(collisionMovement)
+        requestAnimationFrame(function(){nonCollisionMovement(collided)})
+
     }
 }
 
@@ -100,7 +101,7 @@ function startBall(){
 
     initVector()
 
-    ball && requestAnimationFrame(increment)
+    ball && increment()
 }
 
 function destroyBall(){
@@ -147,7 +148,7 @@ watch(() => gameStore.getGameStatus, (newValue) => {
 })
 
 watch(() => ballStore.getBallIsCaptured, (newValue) => {
-    !newValue && requestAnimationFrame(increment)
+    !newValue && increment()
 })
 
 watch(() => baseStore.getBasePosition.x, (newValue, oldValue) => {
